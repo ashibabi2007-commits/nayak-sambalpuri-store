@@ -25,6 +25,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
   const [step, setStep] = useState<'cart' | 'address' | 'payment'>('cart');
   const [orderBusy, setOrderBusy] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   const total = useMemo(() => cartTotal(items), [items]);
 
@@ -66,7 +67,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
   const canOrder = items.length > 0 && addressComplete;
 
 
-  async function placeOrder() {
+  async function saveOrder(openWhatsappAfterSave = false) {
     if (!canOrder) return;
     setOrderBusy(true);
     try {
@@ -91,15 +92,22 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
         if (error) throw error;
         orderId = data.id;
         setCreatedOrderId(orderId);
+        setOrderPlaced(true);
         const saved = JSON.parse(localStorage.getItem('nayak_order_ids') || '[]');
         localStorage.setItem('nayak_order_ids', JSON.stringify([orderId, ...saved.filter((x: string) => x !== orderId)].slice(0, 20)));
+      } else {
+        setOrderPlaced(true);
       }
-      window.open(`https://wa.me/${whatsapp}?text=${orderMessage(orderId || undefined)}`, '_blank');
+
+      if (openWhatsappAfterSave) {
+        window.open(`https://wa.me/${whatsapp}?text=${orderMessage(orderId || undefined)}`, '_blank');
+      }
     } catch (err: any) {
       alert(err.message || 'Order could not be saved. Please try again.');
     }
     setOrderBusy(false);
   }
+
 
   if (!open) return null;
   return (
@@ -173,13 +181,19 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                 Pay using the shop owner's QR code below, then click WhatsApp Order and send payment screenshot on WhatsApp.
               </div>
               <div style={{textAlign:'center', margin:'12px 0'}}>
-                <img src="/payment-qr.jpg" alt="Payment QR code" style={{width:190, maxWidth:'100%', borderRadius:18, border:'1px solid #ead8c0'}} />
+                <img src="/payment-qr.svg" alt="Payment QR code" style={{width:190, maxWidth:'100%', borderRadius:18, border:'1px solid #ead8c0'}} />
                 <p style={{margin:'8px 0 0', fontWeight:700}}>Scan to Pay</p>
               </div>
-              {createdOrderId && <div className="success">Order saved. Order ID: {createdOrderId}</div>}
-              <button className="btn btn-primary" disabled={!canOrder || orderBusy} style={{width:'100%', justifyContent:'center', opacity: canOrder ? 1 : .5}} onClick={placeOrder}>
-                {orderBusy ? 'Saving Order...' : 'Place Order on WhatsApp'}
+              {createdOrderId && <div className="success">Order placed successfully. Order ID: {createdOrderId}</div>}
+              <button className="btn btn-primary" disabled={!canOrder || orderBusy || orderPlaced} style={{width:'100%', justifyContent:'center', opacity: canOrder && !orderPlaced ? 1 : .65}} onClick={() => saveOrder(false)}>
+                {orderBusy ? 'Saving Order...' : orderPlaced ? 'Order Saved in Admin Panel' : 'Place Order'}
               </button>
+              <button className="btn btn-gold" disabled={!canOrder || orderBusy} style={{width:'100%', justifyContent:'center', marginTop:10, opacity: canOrder ? 1 : .5}} onClick={() => saveOrder(true)}>
+                Place Order & Send on WhatsApp
+              </button>
+              <a className="btn btn-light" style={{width:'100%', justifyContent:'center', marginTop:10}} href="/track">
+                Track My Order
+              </a>
               <button className="btn btn-light" style={{width:'100%', justifyContent:'center', marginTop:10}} onClick={() => setStep('address')}>Back to Address</button>
             </>
           )}

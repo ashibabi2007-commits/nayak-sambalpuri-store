@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Home, LogOut, Plus, Trash2, Pencil, Save, PackageCheck, RefreshCw } from 'lucide-react';
 import { supabase, Product, Order } from '@/lib/supabaseClient';
@@ -23,6 +23,8 @@ export default function AdminPage() {
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderDateFilter, setOrderDateFilter] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('All');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{type:'success'|'error'|'alert', text:string} | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,6 +36,19 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => { if (session) { loadProducts(); loadOrders(); } }, [session]);
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const orderDate = new Date(order.created_at).toISOString().slice(0, 10);
+      const dateOk = !orderDateFilter || orderDate === orderDateFilter;
+      const statusOk = orderStatusFilter === 'All' || order.order_status === orderStatusFilter;
+      return dateOk && statusOk;
+    });
+  }, [orders, orderDateFilter, orderStatusFilter]);
+
+  const filteredTotal = useMemo(() => {
+    return filteredOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+  }, [filteredOrders]);
 
   async function login(e: React.FormEvent) {
     e.preventDefault();
@@ -190,8 +205,29 @@ export default function AdminPage() {
           </div>
           <button className="btn btn-light" onClick={loadOrders}><RefreshCw size={16}/> Refresh Orders</button>
         </div>
-        <div className="alert success"><strong>Total Orders:</strong> {orders.length} | <strong>Total Sales:</strong> ₹{orders.reduce((sum, o) => sum + Number(o.total || 0), 0).toLocaleString('en-IN')}</div>
-        {orders.length === 0 ? <p>No order records yet. Orders will appear after customers place order from checkout.</p> : orders.map((order) => (
+        <div className="form-grid">
+          <div>
+            <label>Filter by Date</label>
+            <input className="input" type="date" value={orderDateFilter} onChange={e => setOrderDateFilter(e.target.value)} />
+          </div>
+          <div>
+            <label>Filter by Status</label>
+            <select className="select" value={orderStatusFilter} onChange={e => setOrderStatusFilter(e.target.value)}>
+              <option>All</option>
+              <option>Order placed</option>
+              <option>Payment verified</option>
+              <option>Packed</option>
+              <option>Shipped</option>
+              <option>Delivered</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <br />
+        <div className="alert success">
+          <strong>Total Orders:</strong> {orders.length} | <strong>Showing:</strong> {filteredOrders.length} | <strong>Showing Sales:</strong> ₹{filteredTotal.toLocaleString('en-IN')}
+        </div>
+        {orders.length === 0 ? <p>No order records yet. Orders will appear after customers place order from checkout.</p> : filteredOrders.length === 0 ? <p>No orders found for this date/status filter.</p> : filteredOrders.map((order) => (
           <div className="admin-card order-admin-card" key={order.id}>
             <div className="order-admin-head">
               <div>
