@@ -5,13 +5,11 @@ import { PlayCircle, Sparkles } from 'lucide-react';
 const videos = [
   {
     title: 'Sambalpuri Saree Collection',
-    subtitle: 'Add your shop collection video here',
     src: '/videos/collection-1.mp4',
     poster: '/videos/poster-1.jpg',
   },
   {
     title: 'Cotton & Silk Saree Designs',
-    subtitle: 'Show pallu, border, fabric and colour details',
     src: '/videos/collection-2.mp4',
     poster: '/videos/poster-2.jpg',
   },
@@ -43,7 +41,6 @@ export default function VideoShowcase() {
               </div>
               <div className="video-info">
                 <h3>{video.title}</h3>
-                <p>{video.subtitle}</p>
               </div>
             </div>
           ))}
