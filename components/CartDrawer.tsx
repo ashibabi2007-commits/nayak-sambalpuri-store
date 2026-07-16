@@ -173,7 +173,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                 Pay using the shop owner's QR code below, then click WhatsApp Order and send payment screenshot on WhatsApp.
               </div>
               <div style={{textAlign:'center', margin:'12px 0'}}>
-                <img src="/payment-qr.svg" alt="Payment QR code" style={{width:190, maxWidth:'100%', borderRadius:18, border:'1px solid #ead8c0'}} />
+                <img src="/payment-qr.jpg" alt="Payment QR code" style={{width:190, maxWidth:'100%', borderRadius:18, border:'1px solid #ead8c0'}} />
                 <p style={{margin:'8px 0 0', fontWeight:700}}>Scan to Pay</p>
               </div>
               {createdOrderId && <div className="success">Order saved. Order ID: {createdOrderId}</div>}

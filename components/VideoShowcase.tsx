@@ -31,7 +31,7 @@ export default function VideoShowcase() {
           {videos.map((video, index) => (
             <div className="video-card" key={video.src}>
               <div className="video-frame">
-                <video controls preload="metadata" poster={video.poster}>
+                <video autoPlay muted loop playsInline preload="metadata" poster={video.poster}>
                   <source src={video.src} type="video/mp4" />
                   Your browser does not support video playback.
                 </video>
@@ -48,7 +48,6 @@ export default function VideoShowcase() {
             </div>
           ))}
         </div>
-        <p className="video-help">To show videos, add MP4 files in <strong>public/videos</strong> with names <strong>collection-1.mp4</strong> and <strong>collection-2.mp4</strong>.</p>
       </div>
     </section>
   );
