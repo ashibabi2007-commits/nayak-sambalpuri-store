@@ -7,6 +7,21 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholde
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+
+export type Order = {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string;
+  order_items: any[];
+  total: number;
+  payment_status: string;
+  order_status: string;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Review = {
   id: string;
   product_id: string;

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Home, LogOut, Plus, Trash2, Pencil, Save } from 'lucide-react';
-import { supabase, Product } from '@/lib/supabaseClient';
+import { Home, LogOut, Plus, Trash2, Pencil, Save, PackageCheck, RefreshCw } from 'lucide-react';
+import { supabase, Product, Order } from '@/lib/supabaseClient';
 
 type ProductForm = {
   name: string;
@@ -22,6 +22,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{type:'success'|'error'|'alert', text:string} | null>(null);
   const [busy, setBusy] = useState(false);
@@ -32,7 +33,7 @@ export default function AdminPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => { if (session) loadProducts(); }, [session]);
+  useEffect(() => { if (session) { loadProducts(); loadOrders(); } }, [session]);
 
   async function login(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +50,31 @@ export default function AdminPage() {
     const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (error) setMessage({type:'error', text:error.message});
     else setProducts((data || []) as Product[]);
+  }
+
+  async function loadOrders() {
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (error) {
+      // Orders table may not exist until migration is run.
+      console.warn(error.message);
+    } else setOrders((data || []) as Order[]);
+  }
+
+  async function updateOrder(id: string, updates: Partial<Order>) {
+    setBusy(true);
+    const { error } = await supabase.from('orders').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) setMessage({type:'error', text:error.message});
+    else { setMessage({type:'success', text:'Order updated.'}); await loadOrders(); }
+    setBusy(false);
+  }
+
+  async function deleteOrder(id: string) {
+    if (!confirm('Delete this order record?')) return;
+    setBusy(true);
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) setMessage({type:'error', text:error.message});
+    else { setMessage({type:'success', text:'Order deleted.'}); await loadOrders(); }
+    setBusy(false);
   }
 
   async function uploadImage(file: File) {
@@ -154,6 +180,66 @@ export default function AdminPage() {
         <div><Link className="btn btn-light" href="/"><Home size={16}/> Home</Link> <button className="btn btn-danger" onClick={logout}><LogOut size={16}/> Logout</button></div>
       </div>
       {message && <div className={message.type}>{message.text}</div>}
+
+
+      <div className="admin-card">
+        <div style={{display:'flex', justifyContent:'space-between', gap:12, alignItems:'center', flexWrap:'wrap'}}>
+          <div>
+            <h2><PackageCheck size={22}/> Order Records</h2>
+            <p className="desc">Track all customer orders, payment status and delivery status.</p>
+          </div>
+          <button className="btn btn-light" onClick={loadOrders}><RefreshCw size={16}/> Refresh Orders</button>
+        </div>
+        <div className="alert success"><strong>Total Orders:</strong> {orders.length} | <strong>Total Sales:</strong> ₹{orders.reduce((sum, o) => sum + Number(o.total || 0), 0).toLocaleString('en-IN')}</div>
+        {orders.length === 0 ? <p>No order records yet. Orders will appear after customers place order from checkout.</p> : orders.map((order) => (
+          <div className="admin-card order-admin-card" key={order.id}>
+            <div className="order-admin-head">
+              <div>
+                <h3>Order #{order.id.slice(0, 8)}</h3>
+                <p className="desc">{new Date(order.created_at).toLocaleString('en-IN')}</p>
+                <p><strong>{order.customer_name}</strong> — {order.customer_phone}</p>
+                <p>{order.customer_address}</p>
+              </div>
+              <div>
+                <span className="order-status-pill">₹{Number(order.total).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+            <div className="order-items-mini">
+              {(order.order_items || []).map((item: any, idx: number) => (
+                <div key={idx}>{idx + 1}. {item.name} × {item.quantity} — ₹{Number(item.price) * Number(item.quantity)}</div>
+              ))}
+            </div>
+            <div className="form-grid">
+              <div>
+                <label>Order Status</label>
+                <select className="select" value={order.order_status} onChange={e => updateOrder(order.id, { order_status: e.target.value } as any)}>
+                  <option>Order placed</option>
+                  <option>Payment verified</option>
+                  <option>Packed</option>
+                  <option>Shipped</option>
+                  <option>Delivered</option>
+                  <option>Cancelled</option>
+                </select>
+              </div>
+              <div>
+                <label>Payment Status</label>
+                <select className="select" value={order.payment_status} onChange={e => updateOrder(order.id, { payment_status: e.target.value } as any)}>
+                  <option>Payment screenshot pending</option>
+                  <option>Payment received</option>
+                  <option>Payment failed</option>
+                  <option>Refunded</option>
+                </select>
+              </div>
+              <div style={{gridColumn:'1 / -1'}}>
+                <label>Admin Delivery Note</label>
+                <textarea className="textarea" rows={2} defaultValue={order.admin_note || ''} onBlur={e => updateOrder(order.id, { admin_note: e.target.value } as any)} placeholder="Example: Sent by courier, expected delivery tomorrow" />
+              </div>
+            </div>
+            <br />
+            <button className="btn btn-danger" disabled={busy} onClick={() => deleteOrder(order.id)}><Trash2 size={16}/> Delete Order</button>
+          </div>
+        ))}
+      </div>
 
       <div className="admin-card">
         <h2>{editingId ? 'Edit Product' : 'Add New Product'}</h2>

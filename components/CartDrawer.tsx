@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Minus, Plus, Trash2, X, MapPin, User, Phone } from 'lucide-react';
 import { CartItem, cartTotal, getCart, saveCart } from '@/lib/cart';
+import { supabase } from '@/lib/supabaseClient';
 
 type Address = {
   name: string;
@@ -22,6 +23,8 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
   const [items, setItems] = useState<CartItem[]>([]);
   const [address, setAddress] = useState<Address>(emptyAddress);
   const [step, setStep] = useState<'cart' | 'address' | 'payment'>('cart');
+  const [orderBusy, setOrderBusy] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   const total = useMemo(() => cartTotal(items), [items]);
 
@@ -53,14 +56,50 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
 
   const fullAddress = `${address.house}, ${address.road}, ${address.landmark ? address.landmark + ', ' : ''}${address.city}, ${address.state} - ${address.pincode}`;
 
-  function orderMessage() {
+  function orderMessage(orderId?: string) {
     const lines = items.map((i, idx) => `${idx + 1}. ${i.name} - Qty ${i.quantity} - ₹${Number(i.price) * i.quantity}`).join('\n');
-    return `New order from Nayak Sambalpuri Bastralaya website%0A%0ACustomer: ${address.name}%0APhone: ${address.phone}%0AAddress: ${fullAddress}%0A%0AItems:%0A${encodeURIComponent(lines)}%0A%0ATotal: ₹${total.toLocaleString('en-IN')}%0A%0APayment: Customer will pay using QR code and send screenshot.`;
+    return `New order from Nayak Sambalpuri Bastralaya website%0AOrder ID: ${orderId || 'Saving...'}%0A%0ACustomer: ${address.name}%0APhone: ${address.phone}%0AAddress: ${fullAddress}%0A%0AItems:%0A${encodeURIComponent(lines)}%0A%0ATotal: ₹${total.toLocaleString('en-IN')}%0A%0APayment: Customer will pay using QR code and send screenshot.`;
   }
 
   const whatsapp = process.env.NEXT_PUBLIC_SHOP_WHATSAPP || '919337424250';
   const addressComplete = address.name && address.phone && address.pincode && address.city && address.state && address.house && address.road;
   const canOrder = items.length > 0 && addressComplete;
+
+
+  async function placeOrder() {
+    if (!canOrder) return;
+    setOrderBusy(true);
+    try {
+      let orderId = createdOrderId;
+      if (!orderId) {
+        const orderItems = items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity,
+          image_url: item.image_url,
+        }));
+        const { data, error } = await supabase.from('orders').insert({
+          customer_name: address.name,
+          customer_phone: address.phone,
+          customer_address: fullAddress,
+          order_items: orderItems,
+          total,
+          payment_status: 'Payment screenshot pending',
+          order_status: 'Order placed',
+        }).select('id').single();
+        if (error) throw error;
+        orderId = data.id;
+        setCreatedOrderId(orderId);
+        const saved = JSON.parse(localStorage.getItem('nayak_order_ids') || '[]');
+        localStorage.setItem('nayak_order_ids', JSON.stringify([orderId, ...saved.filter((x: string) => x !== orderId)].slice(0, 20)));
+      }
+      window.open(`https://wa.me/${whatsapp}?text=${orderMessage(orderId || undefined)}`, '_blank');
+    } catch (err: any) {
+      alert(err.message || 'Order could not be saved. Please try again.');
+    }
+    setOrderBusy(false);
+  }
 
   if (!open) return null;
   return (
@@ -134,12 +173,13 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                 Pay using the shop owner's QR code below, then click WhatsApp Order and send payment screenshot on WhatsApp.
               </div>
               <div style={{textAlign:'center', margin:'12px 0'}}>
-                <img src="/payment-qr.jpg" alt="Payment QR code" style={{width:190, maxWidth:'100%', borderRadius:18, border:'1px solid #ead8c0'}} />
+                <img src="/payment-qr.svg" alt="Payment QR code" style={{width:190, maxWidth:'100%', borderRadius:18, border:'1px solid #ead8c0'}} />
                 <p style={{margin:'8px 0 0', fontWeight:700}}>Scan to Pay</p>
               </div>
-              <a className={`btn btn-primary ${!canOrder ? 'disabled' : ''}`} style={{width:'100%', justifyContent:'center', opacity: canOrder ? 1 : .5, pointerEvents: canOrder ? 'auto' : 'none'}} href={`https://wa.me/${whatsapp}?text=${orderMessage()}`} target="_blank">
-                Place Order on WhatsApp
-              </a>
+              {createdOrderId && <div className="success">Order saved. Order ID: {createdOrderId}</div>}
+              <button className="btn btn-primary" disabled={!canOrder || orderBusy} style={{width:'100%', justifyContent:'center', opacity: canOrder ? 1 : .5}} onClick={placeOrder}>
+                {orderBusy ? 'Saving Order...' : 'Place Order on WhatsApp'}
+              </button>
               <button className="btn btn-light" style={{width:'100%', justifyContent:'center', marginTop:10}} onClick={() => setStep('address')}>Back to Address</button>
             </>
           )}

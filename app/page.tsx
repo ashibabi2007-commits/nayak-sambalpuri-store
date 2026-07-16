@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MapPin, Phone, Sparkles, Truck, ShieldCheck, CreditCard } from 'lucide-react';
 import Header from '@/components/Header';
 import ProductGrid from '@/components/ProductGrid';
+import VideoShowcase from '@/components/VideoShowcase';
 import CartDrawer from '@/components/CartDrawer';
 
 export default function Home() {
@@ -49,6 +50,7 @@ export default function Home() {
           </div>
         </section>
 
+        <VideoShowcase />
         <ProductGrid />
       </main>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBag, Phone, Settings } from 'lucide-react';
+import { ShoppingBag, Phone, Settings, Truck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getCart } from '@/lib/cart';
 
@@ -25,6 +25,7 @@ export default function Header({ onCart }: { onCart?: () => void }) {
         </Link>
         <nav className="navlinks">
           <a className="btn btn-light" href="tel:9337424250"><Phone size={17}/> Call</a>
+          <Link className="btn btn-light" href="/track"><Truck size={17}/> Track</Link>
           <button className="btn btn-primary" onClick={onCart}><ShoppingBag size={17}/> Cart {count ? `(${count})` : ''}</button>
           <Link className="btn btn-gold" href="/admin"><Settings size={17}/> Admin</Link>
         </nav>
