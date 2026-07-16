@@ -73,6 +73,9 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
     try {
       let orderId = createdOrderId;
       if (!orderId) {
+        // Create order ID in browser before saving.
+        // This avoids public SELECT on orders table, so Supabase RLS remains secure.
+        orderId = crypto.randomUUID();
         const orderItems = items.map((item) => ({
           id: item.id,
           name: item.name,
@@ -80,7 +83,8 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           quantity: item.quantity,
           image_url: item.image_url,
         }));
-        const { data, error } = await supabase.from('orders').insert({
+        const { error } = await supabase.from('orders').insert({
+          id: orderId,
           customer_name: address.name,
           customer_phone: address.phone,
           customer_address: fullAddress,
@@ -88,9 +92,8 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           total,
           payment_status: 'Payment screenshot pending',
           order_status: 'Order placed',
-        }).select('id').single();
+        });
         if (error) throw error;
-        orderId = data.id;
         setCreatedOrderId(orderId);
         setOrderPlaced(true);
         const saved = JSON.parse(localStorage.getItem('nayak_order_ids') || '[]');
