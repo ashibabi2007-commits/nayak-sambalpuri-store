@@ -3,24 +3,29 @@
 import { useEffect, useState } from 'react';
 
 export default function SplashScreen() {
-  const [show, setShow] = useState(false);
+  // Start as true so the entry screen appears first immediately.
+  // This prevents the website page from flashing before the entry animation.
+  const [show, setShow] = useState(true);
   const [hide, setHide] = useState(false);
 
   useEffect(() => {
-    // Show the entry animation once per browser session.
     const alreadySeen = sessionStorage.getItem('nayak_entry_seen');
-    if (alreadySeen) return;
 
-    setShow(true);
-    const hideTimer = setTimeout(() => setHide(true), 2300);
-    const removeTimer = setTimeout(() => {
+    // If user already saw it in this browser session, remove it quickly.
+    if (alreadySeen) {
+      setShow(false);
+      return;
+    }
+
+    const hideTimer = window.setTimeout(() => setHide(true), 1850);
+    const removeTimer = window.setTimeout(() => {
       setShow(false);
       sessionStorage.setItem('nayak_entry_seen', 'true');
-    }, 2850);
+    }, 2350);
 
     return () => {
-      clearTimeout(hideTimer);
-      clearTimeout(removeTimer);
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(removeTimer);
     };
   }, []);
 
@@ -44,7 +49,7 @@ export default function SplashScreen() {
         </div>
 
         <p>Manufacturer Of Sambalpuri cotton and silk saree</p>
-        <div className="splash-loading">
+        <div className="splash-loading" aria-hidden="true">
           <i />
           <i />
           <i />

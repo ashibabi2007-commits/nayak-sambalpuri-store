@@ -1116,3 +1116,129 @@ button, a, input, select, textarea {
     transform: scale(1.025);
   }
 }
+
+/* =========================================================
+   Mobile Performance Upgrade + Smoother First Entry
+   ========================================================= */
+.splash-screen {
+  will-change: opacity, transform;
+  contain: layout paint style;
+}
+.splash-card,
+.splash-logo,
+.splash-weave,
+.splash-loading {
+  will-change: transform, opacity;
+}
+
+/* Prevent page behind splash from moving while splash is active visually */
+.splash-screen + .header,
+.splash-screen ~ main {
+  pointer-events: none;
+}
+
+/* Smooth but lighter splash on phones */
+@media (max-width: 700px) {
+  .splash-screen {
+    background:
+      radial-gradient(circle at 18% 18%, rgba(214,166,79,.20), transparent 22rem),
+      linear-gradient(135deg, #fff8ec 0%, #fff3df 100%);
+  }
+  .splash-pattern {
+    opacity: .10;
+    animation: none !important;
+    transform: none !important;
+  }
+  .splash-card {
+    backdrop-filter: none;
+    background: rgba(255,255,255,.88);
+    box-shadow: 0 18px 48px rgba(59,13,20,.16);
+    animation-duration: .48s;
+  }
+  .splash-rings,
+  .splash-rings:before,
+  .splash-rings:after {
+    animation-duration: 1.55s;
+  }
+  .splash-logo {
+    animation: splashLogoPop .55s cubic-bezier(.2,.9,.25,1.15) both !important;
+  }
+  .splash-weave span {
+    animation-duration: 1.25s;
+  }
+  .splash-hide {
+    animation-duration: .42s;
+  }
+}
+
+/* Disable expensive fixed animated glow on mobile for smoother scrolling */
+@media (max-width: 760px) {
+  body:before {
+    display: none !important;
+    animation: none !important;
+  }
+  .hero-card {
+    animation: floatIn .55s ease both !important;
+  }
+  .hero h2,
+  .hero p,
+  .hero .badge,
+  .hero .btn {
+    animation-duration: .45s !important;
+  }
+}
+
+/* Touch devices do not need hover-heavy animations */
+@media (hover: none) and (pointer: coarse) {
+  .card:hover,
+  .admin-card:hover,
+  .review-card:hover,
+  .video-card:hover,
+  .detail-info:hover,
+  .gallery-box:hover {
+    transform: none !important;
+    box-shadow: 0 10px 34px rgba(59,13,20,.08) !important;
+  }
+  .product-card-pro:hover .product-img,
+  .gallery-box:hover .detail-main-img,
+  .review-images img:hover,
+  .thumb-btn:hover,
+  .detail-thumb:hover,
+  .service-box div:hover,
+  .cart-item:hover {
+    transform: none !important;
+  }
+  .btn:hover {
+    transform: none !important;
+  }
+  .btn:active {
+    transform: scale(.985) !important;
+  }
+  .logo:after,
+  .btn:before,
+  .placeholder:after {
+    display: none !important;
+  }
+}
+
+/* Improve mobile video smoothness */
+@media (max-width: 700px) {
+  .video-frame {
+    aspect-ratio: 16 / 10;
+  }
+  .video-frame video {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/* Smoother cart drawer on mobile */
+@media (max-width: 700px) {
+  .cart-panel,
+  .drawer {
+    animation-duration: .18s !important;
+  }
+  .drawer-body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
