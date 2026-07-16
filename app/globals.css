@@ -108,3 +108,41 @@ button, input, textarea, select { font: inherit; }
   .navlinks { gap:8px; }
   .btn { padding:10px 13px; }
 }
+.thumb-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 0;
+  overflow-x: auto;
+}
+.thumb-btn {
+  border: 2px solid transparent;
+  background: transparent;
+  padding: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.thumb-btn.active { border-color: var(--maroon); }
+.thumb-btn img {
+  width: 50px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+.more-images {
+  min-width: 42px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #f4e6d6;
+  color: var(--maroon);
+  font-weight: 800;
+}
+.gallery-count {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}

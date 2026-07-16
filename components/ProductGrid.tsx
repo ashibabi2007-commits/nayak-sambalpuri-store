@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, ShoppingCart } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { supabase, Product } from '@/lib/supabaseClient';
-import { addToCart } from '@/lib/cart';
+import ProductCard from '@/components/ProductCard';
 
 const demoProducts: Product[] = [
   {
@@ -81,21 +81,7 @@ export default function ProductGrid() {
         {loading ? <p>Loading products...</p> : null}
         <div className="products">
           {filtered.map((product) => (
-            <article className="card" key={product.id}>
-              {product.image_url ? (
-                <img className="product-img" src={product.image_url} alt={product.name} />
-              ) : (
-                <div className="placeholder">Sambalpuri Saree</div>
-              )}
-              <div className="card-body">
-                <h3>{product.name}</h3>
-                <p className="desc">{product.description}</p>
-                <div className="price">₹{Number(product.price).toLocaleString('en-IN')}</div>
-                <button className="btn btn-primary" style={{width:'100%', justifyContent:'center'}} onClick={() => addToCart(product)}>
-                  <ShoppingCart size={17}/> Add to Cart
-                </button>
-              </div>
-            </article>
+            <ProductCard product={product} key={product.id} />
           ))}
         </div>
       </div>

@@ -11,10 +11,10 @@ type ProductForm = {
   price: string;
   category: string;
   stock: string;
-  image: File | null;
+  images: File[];
 };
 
-const emptyForm: ProductForm = { name: '', description: '', price: '', category: 'Saree', stock: '1', image: null };
+const emptyForm: ProductForm = { name: '', description: '', price: '', category: 'Saree', stock: '1', images: [] };
 
 export default function AdminPage() {
   const [session, setSession] = useState<any>(null);
@@ -53,26 +53,43 @@ export default function AdminPage() {
 
   async function uploadImage(file: File) {
     const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '-');
-    const path = `${Date.now()}-${safeName}`;
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`;
     const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: false });
     if (error) throw error;
     const { data } = supabase.storage.from('product-images').getPublicUrl(path);
-    return { image_url: data.publicUrl, image_path: path };
+    return data.publicUrl;
+  }
+
+  async function uploadImages(files: File[]) {
+    const urls: string[] = [];
+    for (const file of files) {
+      urls.push(await uploadImage(file));
+    }
+    return urls;
   }
 
   async function saveProduct(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setMessage(null);
     try {
-      let imageData: any = {};
-      if (form.image) imageData = await uploadImage(form.image);
+      const newImageUrls = form.images.length ? await uploadImages(form.images) : [];
+      const currentProduct = editingId ? products.find((p) => p.id === editingId) : null;
+      const existingGallery = currentProduct
+        ? (Array.isArray(currentProduct.images) && currentProduct.images.length
+            ? currentProduct.images
+            : currentProduct.image_url
+              ? [currentProduct.image_url]
+              : [])
+        : [];
+      const finalGallery = editingId ? [...existingGallery, ...newImageUrls] : newImageUrls;
       const payload = {
         name: form.name,
         description: form.description,
         price: Number(form.price),
         category: form.category,
         stock: Number(form.stock || 1),
-        ...imageData,
+        images: finalGallery,
+        image_url: finalGallery[0] || null,
       };
       if (editingId) {
         const { error } = await supabase.from('products').update(payload).eq('id', editingId);
@@ -98,7 +115,7 @@ export default function AdminPage() {
       price: String(product.price),
       category: product.category || 'Saree',
       stock: String(product.stock || 1),
-      image: null,
+      images: [],
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -147,7 +164,7 @@ export default function AdminPage() {
             <div><label>Category</label><input className="input" value={form.category} onChange={e => setForm({...form, category:e.target.value})} placeholder="Cotton Saree"/></div>
             <div><label>Stock</label><input className="input" type="number" min="0" value={form.stock} onChange={e => setForm({...form, stock:e.target.value})}/></div>
             <div style={{gridColumn:'1 / -1'}}><label>Description</label><textarea className="textarea" rows={4} value={form.description} onChange={e => setForm({...form, description:e.target.value})} placeholder="Write saree fabric, colour, design, size, etc."/></div>
-            <div style={{gridColumn:'1 / -1'}}><label>Photo {editingId ? '(choose only if changing image)' : ''}</label><input className="input" type="file" accept="image/*" onChange={e => setForm({...form, image:e.target.files?.[0] || null})}/></div>
+            <div style={{gridColumn:'1 / -1'}}><label>Photos {editingId ? '(select more photos to add to this product)' : ''}</label><input className="input" type="file" accept="image/*" multiple onChange={e => setForm({...form, images:Array.from(e.target.files || [])})}/><small className="gallery-count">You can select multiple photos at once.</small></div>
           </div>
           <br/>
           <button className="btn btn-primary" disabled={busy}>{editingId ? <Save size={16}/> : <Plus size={16}/>} {busy ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}</button>
@@ -163,7 +180,7 @@ export default function AdminPage() {
             <tbody>
               {products.map(p => (
                 <tr key={p.id}>
-                  <td>{p.image_url ? <img className="admin-img" src={p.image_url} alt={p.name}/> : 'No image'}</td>
+                  <td>{p.image_url ? <><img className="admin-img" src={p.image_url} alt={p.name}/><br/><small>{(Array.isArray(p.images) && p.images.length) ? p.images.length : 1} photo(s)</small></> : 'No image'}</td>
                   <td><strong>{p.name}</strong><br/><small>{p.category}</small></td>
                   <td>₹{Number(p.price).toLocaleString('en-IN')}</td>
                   <td>{p.description}</td>
