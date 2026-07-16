@@ -708,3 +708,411 @@ label { font-weight: 700; color: var(--deep); display: inline-block; margin-bott
   .splash-logo-wrap { width: 96px; height: 96px; }
   .splash-logo { width: 80px; height: 80px; border-radius: 26px; font-size: 26px; }
 }
+
+/* =========================================================
+   Final Responsive & Smoothness Upgrade
+   Mobile-first refinements for phone, tablet, desktop
+   ========================================================= */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+img, video, svg {
+  max-width: 100%;
+}
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+.container {
+  width: 100%;
+}
+
+/* Make media and cards smoother on lower-end devices */
+.product-img,
+.detail-main-img,
+.video-frame video,
+.hero-card,
+.card,
+.admin-card,
+.drawer {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Better sticky header on mobile */
+.header {
+  will-change: background, box-shadow;
+}
+.navlinks .btn {
+  white-space: nowrap;
+}
+
+/* Better product grid scaling */
+.products {
+  align-items: stretch;
+}
+.card {
+  min-width: 0;
+}
+.card-body {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+.product-card-pro .desc {
+  flex: 1;
+}
+.product-actions-row {
+  margin-top: auto;
+}
+
+/* Smooth drawer/content scrolling */
+.drawer-body,
+.detail-thumbs,
+.thumb-row {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120,31,45,.35) transparent;
+}
+.drawer-body::-webkit-scrollbar,
+.detail-thumbs::-webkit-scrollbar,
+.thumb-row::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.drawer-body::-webkit-scrollbar-thumb,
+.detail-thumbs::-webkit-scrollbar-thumb,
+.thumb-row::-webkit-scrollbar-thumb {
+  background: rgba(120,31,45,.35);
+  border-radius: 999px;
+}
+
+/* Large desktop */
+@media (min-width: 1280px) {
+  .container { max-width: 1240px; }
+  .hero { padding-top: 78px; }
+  .products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .detail-grid { grid-template-columns: .9fr 1.1fr; }
+}
+
+/* Standard laptop/tablet */
+@media (max-width: 1100px) {
+  .container { padding-left: 18px; padding-right: 18px; }
+  .products { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .hero-grid { gap: 24px; }
+  .hero-card { min-height: 380px; }
+  .hero-card-content { min-height: 328px; }
+  .detail-grid { gap: 24px; }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .nav {
+    gap: 14px;
+  }
+  .brand {
+    min-width: 0;
+  }
+  .brand h1 {
+    max-width: 360px;
+  }
+  .hero {
+    padding: 44px 0 28px;
+  }
+  .hero-grid,
+  .detail-grid,
+  .reviews-grid,
+  .footer-grid,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-card {
+    min-height: 330px;
+  }
+  .hero-card-content {
+    min-height: 280px;
+  }
+  .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .searchbar,
+  .searchbar > div,
+  .searchbar input {
+    width: 100%;
+    min-width: 0 !important;
+  }
+  .detail-info,
+  .gallery-box {
+    padding: 18px;
+  }
+  .detail-info h1 {
+    font-size: 34px;
+  }
+  .cart-panel {
+    right: 14px;
+    bottom: 14px;
+  }
+}
+
+/* Mobile header and layout */
+@media (max-width: 700px) {
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .brand {
+    width: 100%;
+  }
+  .brand h1 {
+    font-size: 18px;
+    max-width: none;
+  }
+  .brand p {
+    font-size: 11px;
+  }
+  .logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    flex: 0 0 auto;
+  }
+  .navlinks {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .navlinks .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+  .hero h2 {
+    letter-spacing: -1px;
+  }
+  .hero p {
+    font-size: 16px;
+  }
+  .section {
+    padding: 30px 0;
+  }
+  .section-title h2 {
+    font-size: 30px;
+  }
+  .products {
+    gap: 14px;
+  }
+  .card {
+    border-radius: 22px;
+  }
+  .card-body {
+    padding: 15px;
+  }
+  .card h3 {
+    font-size: 18px;
+  }
+  .desc {
+    font-size: 14px;
+    min-height: auto;
+  }
+  .price {
+    font-size: 21px;
+  }
+  .product-actions-row {
+    grid-template-columns: 1fr;
+  }
+  .detail-main-img {
+    aspect-ratio: 4 / 4.6;
+  }
+  .detail-actions {
+    flex-direction: column;
+  }
+  .detail-actions .btn {
+    width: 100%;
+  }
+  .cart-panel {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    max-width: none;
+  }
+  .drawer {
+    border-radius: 20px;
+  }
+  .drawer-body {
+    max-height: 68vh;
+  }
+  .checkout-steps {
+    gap: 5px;
+    padding: 9px;
+  }
+  .checkout-steps span {
+    font-size: 11px;
+    padding: 7px 4px;
+  }
+  .cart-item {
+    grid-template-columns: 48px 1fr 42px;
+    gap: 8px;
+  }
+  .cart-item img,
+  .cart-item .placeholder {
+    width: 48px !important;
+    height: 56px !important;
+  }
+  .table {
+    font-size: 14px;
+  }
+  .table th,
+  .table td {
+    padding: 9px;
+  }
+  .admin-wrap {
+    padding: 22px 12px;
+  }
+  .admin-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 520px) {
+  .products {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    padding-top: 32px;
+  }
+  .hero h2 {
+    font-size: 38px;
+  }
+  .hero-card {
+    border-radius: 24px;
+    padding: 20px;
+    min-height: 300px;
+  }
+  .hero-card:before {
+    inset: 14px;
+    border-radius: 18px;
+  }
+  .hero-card-content {
+    min-height: 260px;
+  }
+  .hero-card h3 {
+    font-size: 30px;
+  }
+  .badge {
+    font-size: 13px;
+  }
+  .btn {
+    min-height: 42px;
+  }
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px; /* prevents iPhone zoom */
+    border-radius: 14px;
+  }
+  .detail-info h1 {
+    font-size: 30px;
+  }
+  .detail-price {
+    font-size: 30px;
+  }
+  .rating-line {
+    gap: 7px;
+    font-size: 13px;
+  }
+  .detail-thumb img {
+    width: 58px;
+    height: 70px;
+  }
+  .thumb-btn img {
+    width: 44px;
+    height: 52px;
+  }
+  .review-head {
+    align-items: flex-start;
+  }
+  .review-images img {
+    width: 74px;
+    height: 84px;
+  }
+  .video-info {
+    padding: 14px;
+  }
+  .video-info h3 {
+    font-size: 18px;
+  }
+  .footer {
+    padding: 28px 0;
+  }
+  .footer-grid {
+    gap: 10px;
+  }
+  .splash-card {
+    width: calc(100vw - 24px);
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 380px) {
+  .brand h1 {
+    font-size: 16px;
+  }
+  .brand p {
+    display: none;
+  }
+  .navlinks {
+    grid-template-columns: 1fr;
+  }
+  .hero h2 {
+    font-size: 34px;
+  }
+  .section-title h2 {
+    font-size: 27px;
+  }
+  .cart-item {
+    grid-template-columns: 44px 1fr 38px;
+  }
+  .btn {
+    font-size: 13px;
+  }
+}
+
+/* Reduce heavy animations on mobile for smoother performance */
+@media (max-width: 700px) {
+  body:before {
+    animation-duration: 22s;
+  }
+  .hero-card {
+    animation: floatIn .7s ease both;
+  }
+  .card:hover,
+  .admin-card:hover,
+  .review-card:hover,
+  .video-card:hover {
+    transform: translateY(-2px);
+  }
+  .product-card-pro:hover .product-img {
+    transform: scale(1.025);
+  }
+}
