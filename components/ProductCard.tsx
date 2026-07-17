@@ -13,8 +13,18 @@ export default function ProductCard({ product }: { product: Product }) {
     return product.image_url ? [product.image_url] : [];
   }, [product]);
 
+  const sizes = Array.isArray(product.sizes) ? product.sizes.filter(Boolean) : [];
   const [selected, setSelected] = useState(0);
+  const [selectedSize, setSelectedSize] = useState(sizes[0] || '');
   const mainImage = gallery[selected] || gallery[0];
+
+  function handleAdd() {
+    if (sizes.length && !selectedSize) {
+      alert('Please select a size first.');
+      return;
+    }
+    addToCart(product, selectedSize || null);
+  }
 
   return (
     <article className="card product-card-pro">
@@ -29,12 +39,7 @@ export default function ProductCard({ product }: { product: Product }) {
       {gallery.length > 1 && (
         <div className="thumb-row">
           {gallery.slice(0, 6).map((img, idx) => (
-            <button
-              key={`${img}-${idx}`}
-              className={`thumb-btn ${idx === selected ? 'active' : ''}`}
-              onClick={() => setSelected(idx)}
-              aria-label={`View image ${idx + 1}`}
-            >
+            <button key={`${img}-${idx}`} className={`thumb-btn ${idx === selected ? 'active' : ''}`} onClick={() => setSelected(idx)} aria-label={`View image ${idx + 1}`}>
               <img src={img} alt={`${product.name} ${idx + 1}`} />
             </button>
           ))}
@@ -45,10 +50,18 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="card-body">
         <Link href={`/product/${product.id}`}><h3>{product.name}</h3></Link>
         <p className="desc">{product.description}</p>
+        {sizes.length > 0 && (
+          <div className="size-select-box">
+            <label>Size</label>
+            <select className="select" value={selectedSize} onChange={e => setSelectedSize(e.target.value)}>
+              {sizes.map(size => <option key={size} value={size}>{size}</option>)}
+            </select>
+          </div>
+        )}
         <div className="price">₹{Number(product.price).toLocaleString('en-IN')}</div>
         <div className="product-actions-row">
           <Link className="btn btn-light" href={`/product/${product.id}`}><Eye size={17}/> View</Link>
-          <button className="btn btn-primary" onClick={() => addToCart(product)}>
+          <button className="btn btn-primary" onClick={handleAdd}>
             <ShoppingCart size={17}/> Add
           </button>
         </div>

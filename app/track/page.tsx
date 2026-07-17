@@ -104,7 +104,7 @@ export default function TrackOrdersPage() {
             <p><MapPin size={15}/> {order.customer_address}</p>
             <div className="order-items-mini">
               {(order.order_items || []).map((item: any, idx: number) => (
-                <div key={idx}>{item.name} × {item.quantity} — ₹{Number(item.price) * Number(item.quantity)}</div>
+                <div key={idx}>{item.name}{item.selected_size ? ` - Size: ${item.selected_size}` : ''} × {item.quantity} — ₹{Number(item.price) * Number(item.quantity)}</div>
               ))}
             </div>
             <strong>Total: ₹{Number(order.total).toLocaleString('en-IN')}</strong><br />

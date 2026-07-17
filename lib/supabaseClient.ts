@@ -41,5 +41,6 @@ export type Product = {
   images?: string[] | null;
   category: string | null;
   stock: number | null;
+  sizes?: string[] | null;
   created_at: string;
 };

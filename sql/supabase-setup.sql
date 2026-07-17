@@ -10,6 +10,7 @@ create table if not exists public.products (
   image_path text,
   category text default 'Saree',
   stock integer default 1,
+  sizes text[] default '{}',
   created_at timestamptz default now()
 );
 
@@ -28,20 +29,20 @@ drop policy if exists "Admin can insert products" on public.products;
 create policy "Admin can insert products"
 on public.products for insert
 to authenticated
-with check ((auth.jwt() ->> 'email') = 'owner@example.com');
+with check ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
 
 drop policy if exists "Admin can update products" on public.products;
 create policy "Admin can update products"
 on public.products for update
 to authenticated
-using ((auth.jwt() ->> 'email') = 'owner@example.com')
-with check ((auth.jwt() ->> 'email') = 'owner@example.com');
+using ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com')
+with check ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
 
 drop policy if exists "Admin can delete products" on public.products;
 create policy "Admin can delete products"
 on public.products for delete
 to authenticated
-using ((auth.jwt() ->> 'email') = 'owner@example.com');
+using ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
 
 -- Create a public bucket named product-images in Supabase Storage first.
 -- Storage policies for product image bucket:
@@ -60,16 +61,16 @@ drop policy if exists "Admin can upload product images" on storage.objects;
 create policy "Admin can upload product images"
 on storage.objects for insert
 to authenticated
-with check (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'owner@example.com');
+with check (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
 
 drop policy if exists "Admin can update product images" on storage.objects;
 create policy "Admin can update product images"
 on storage.objects for update
 to authenticated
-using (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'owner@example.com');
+using (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
 
 drop policy if exists "Admin can delete product images" on storage.objects;
 create policy "Admin can delete product images"
 on storage.objects for delete
 to authenticated
-using (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'owner@example.com');
+using (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');

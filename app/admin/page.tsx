@@ -11,10 +11,11 @@ type ProductForm = {
   price: string;
   category: string;
   stock: string;
+  sizes: string;
   images: File[];
 };
 
-const emptyForm: ProductForm = { name: '', description: '', price: '', category: 'Saree', stock: '1', images: [] };
+const emptyForm: ProductForm = { name: '', description: '', price: '', category: 'Saree', stock: '1', sizes: '', images: [] };
 
 export default function AdminPage() {
   const [session, setSession] = useState<any>(null);
@@ -129,6 +130,7 @@ export default function AdminPage() {
         price: Number(form.price),
         category: form.category,
         stock: Number(form.stock || 1),
+        sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
         images: finalGallery,
         image_url: finalGallery[0] || null,
       };
@@ -156,6 +158,7 @@ export default function AdminPage() {
       price: String(product.price),
       category: product.category || 'Saree',
       stock: String(product.stock || 1),
+      sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : '',
       images: [],
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -242,7 +245,7 @@ export default function AdminPage() {
             </div>
             <div className="order-items-mini">
               {(order.order_items || []).map((item: any, idx: number) => (
-                <div key={idx}>{idx + 1}. {item.name} × {item.quantity} — ₹{Number(item.price) * Number(item.quantity)}</div>
+                <div key={idx}>{idx + 1}. {item.name}{item.selected_size ? ` - Size: ${item.selected_size}` : ''} × {item.quantity} — ₹{Number(item.price) * Number(item.quantity)}</div>
               ))}
             </div>
             <div className="form-grid">
@@ -285,6 +288,7 @@ export default function AdminPage() {
             <div><label>Price ₹</label><input className="input" type="number" min="0" value={form.price} onChange={e => setForm({...form, price:e.target.value})} required placeholder="2499"/></div>
             <div><label>Category</label><input className="input" value={form.category} onChange={e => setForm({...form, category:e.target.value})} placeholder="Cotton Saree"/></div>
             <div><label>Stock</label><input className="input" type="number" min="0" value={form.stock} onChange={e => setForm({...form, stock:e.target.value})}/></div>
+            <div style={{gridColumn:'1 / -1'}}><label>Available Sizes</label><input className="input" value={form.sizes} onChange={e => setForm({...form, sizes:e.target.value})} placeholder="Free Size, S, M, L, XL, 6.3m"/><small className="gallery-count">Write sizes separated by comma. Leave blank if no size selection needed.</small></div>
             <div style={{gridColumn:'1 / -1'}}><label>Description</label><textarea className="textarea" rows={4} value={form.description} onChange={e => setForm({...form, description:e.target.value})} placeholder="Write saree fabric, colour, design, size, etc."/></div>
             <div style={{gridColumn:'1 / -1'}}><label>Photos {editingId ? '(select more photos to add to this product)' : ''}</label><input className="input" type="file" accept="image/*" multiple onChange={e => setForm({...form, images:Array.from(e.target.files || [])})}/><small className="gallery-count">You can select multiple photos at once.</small></div>
           </div>
@@ -303,7 +307,7 @@ export default function AdminPage() {
               {products.map(p => (
                 <tr key={p.id}>
                   <td>{p.image_url ? <><img className="admin-img" src={p.image_url} alt={p.name}/><br/><small>{(Array.isArray(p.images) && p.images.length) ? p.images.length : 1} photo(s)</small></> : 'No image'}</td>
-                  <td><strong>{p.name}</strong><br/><small>{p.category}</small></td>
+                  <td><strong>{p.name}</strong><br/><small>{p.category}</small><br/><small>Sizes: {Array.isArray(p.sizes) && p.sizes.length ? p.sizes.join(', ') : 'Not set'}</small></td>
                   <td>₹{Number(p.price).toLocaleString('en-IN')}</td>
                   <td>{p.description}</td>
                   <td>

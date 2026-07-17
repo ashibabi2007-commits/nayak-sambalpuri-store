@@ -24,6 +24,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [selected, setSelected] = useState(0);
+  const [selectedSize, setSelectedSize] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reviewForm, setReviewForm] = useState({ customer_name: '', rating: 5, comment: '', images: [] as File[] });
@@ -36,6 +37,12 @@ export default function ProductDetailPage() {
     if (arr.length) return arr;
     return product.image_url ? [product.image_url] : [];
   }, [product]);
+
+  const sizes = Array.isArray(product?.sizes) ? product.sizes.filter(Boolean) : [];
+
+  useEffect(() => {
+    if (sizes.length && !selectedSize) setSelectedSize(sizes[0]);
+  }, [product?.id, sizes.length]);
 
   const avgRating = reviews.length
     ? reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length
@@ -141,6 +148,17 @@ export default function ProductDetailPage() {
               <div className="detail-price">₹{Number(product.price).toLocaleString('en-IN')}</div>
               <p className="detail-desc">{product.description}</p>
 
+              {sizes.length > 0 && (
+                <div>
+                  <label>Select Size</label>
+                  <div className="size-pill-row">
+                    {sizes.map(size => (
+                      <button key={size} className={`size-pill ${selectedSize === size ? 'active' : ''}`} onClick={() => setSelectedSize(size)}>{size}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="service-box">
                 <div><Truck color="#781f2d"/><strong>Delivery order on WhatsApp</strong><small>Customer address is collected during checkout.</small></div>
                 <div><CheckCircle color="#781f2d"/><strong>Authentic Sambalpuri Collection</strong><small>Direct from Nayak Sambalpuri Bastralaya.</small></div>
@@ -148,8 +166,8 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="detail-actions">
-                <button className="btn btn-primary" onClick={() => addToCart(product)}><ShoppingCart size={18}/> Add to Cart</button>
-                <button className="btn btn-gold" onClick={() => { addToCart(product); setCartOpen(true); }}><Heart size={18}/> Buy Now</button>
+                <button className="btn btn-primary" onClick={() => addToCart(product, selectedSize || null)}><ShoppingCart size={18}/> Add to Cart</button>
+                <button className="btn btn-gold" onClick={() => { addToCart(product, selectedSize || null); setCartOpen(true); }}><Heart size={18}/> Buy Now</button>
               </div>
             </div>
           </div>

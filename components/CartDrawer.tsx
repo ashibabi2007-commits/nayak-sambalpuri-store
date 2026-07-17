@@ -46,7 +46,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
   }
 
   function changeQty(id: string, delta: number) {
-    const next = items.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i);
+    const next = items.map(i => i.cart_key === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i);
     setItems(next); saveCart(next);
   }
   function remove(id: string) {
@@ -58,7 +58,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
   const fullAddress = `${address.house}, ${address.road}, ${address.landmark ? address.landmark + ', ' : ''}${address.city}, ${address.state} - ${address.pincode}`;
 
   function orderMessage(orderId?: string) {
-    const lines = items.map((i, idx) => `${idx + 1}. ${i.name} - Qty ${i.quantity} - ₹${Number(i.price) * i.quantity}`).join('\n');
+    const lines = items.map((i, idx) => `${idx + 1}. ${i.name}${i.selected_size ? ` - Size ${i.selected_size}` : ''} - Qty ${i.quantity} - ₹${Number(i.price) * i.quantity}`).join('\n');
     return `New order from Nayak Sambalpuri Bastralaya website%0AOrder ID: ${orderId || 'Saving...'}%0A%0ACustomer: ${address.name}%0APhone: ${address.phone}%0AAddress: ${fullAddress}%0A%0AItems:%0A${encodeURIComponent(lines)}%0A%0ATotal: ₹${total.toLocaleString('en-IN')}%0A%0APayment: Customer will pay using QR code and send screenshot.`;
   }
 
@@ -79,6 +79,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           price: Number(item.price),
           quantity: item.quantity,
           image_url: item.image_url,
+          selected_size: item.selected_size || null,
         }));
 
         // Use secure Supabase function instead of direct table insert.
@@ -134,14 +135,14 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                   {item.image_url ? <img src={item.image_url} alt={item.name}/> : <div className="placeholder" style={{width:54,height:60,fontSize:10}}>Saree</div>}
                   <div>
                     <strong>{item.name}</strong><br/>
-                    <small>₹{Number(item.price).toLocaleString('en-IN')}</small>
+                    <small>₹{Number(item.price).toLocaleString('en-IN')}</small>{item.selected_size && <><br/><span className="cart-size">Size: {item.selected_size}</span></>}
                     <div className="qty">
-                      <button onClick={() => changeQty(item.id, -1)}><Minus size={14}/></button>
+                      <button onClick={() => changeQty(item.cart_key, -1)}><Minus size={14}/></button>
                       <span>{item.quantity}</span>
-                      <button onClick={() => changeQty(item.id, 1)}><Plus size={14}/></button>
+                      <button onClick={() => changeQty(item.cart_key, 1)}><Plus size={14}/></button>
                     </div>
                   </div>
-                  <button className="btn btn-light" onClick={() => remove(item.id)}><Trash2 size={16}/></button>
+                  <button className="btn btn-light" onClick={() => remove(item.cart_key)}><Trash2 size={16}/></button>
                 </div>
               ))}
               <h3>Total: ₹{total.toLocaleString('en-IN')}</h3>
