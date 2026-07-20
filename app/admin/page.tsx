@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Home, LogOut, Plus, Trash2, Pencil, Save, PackageCheck, RefreshCw } from 'lucide-react';
-import { supabase, Product, Order } from '@/lib/supabaseClient';
+import { supabase, Product, Order, Category } from '@/lib/supabaseClient';
 
 type ProductForm = {
   name: string;
@@ -23,6 +23,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryForm, setCategoryForm] = useState({ name: '', description: '', sort_order: '0' });
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderDateFilter, setOrderDateFilter] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('All');
@@ -36,7 +38,7 @@ export default function AdminPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => { if (session) { loadProducts(); loadOrders(); } }, [session]);
+  useEffect(() => { if (session) { loadProducts(); loadOrders(); loadCategories(); } }, [session]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -67,6 +69,43 @@ export default function AdminPage() {
     if (error) setMessage({type:'error', text:error.message});
     else setProducts((data || []) as Product[]);
   }
+
+  async function loadCategories() {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true });
+    if (!error && data) setCategories((data || []) as Category[]);
+  }
+
+  async function addCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!categoryForm.name.trim()) return;
+    setBusy(true); setMessage(null);
+    const { error } = await supabase.from('categories').insert({
+      name: categoryForm.name.trim(),
+      description: categoryForm.description.trim() || null,
+      sort_order: Number(categoryForm.sort_order || 0),
+    });
+    if (error) setMessage({type:'error', text:error.message});
+    else {
+      setMessage({type:'success', text:'Category added successfully.'});
+      setCategoryForm({ name: '', description: '', sort_order: '0' });
+      await loadCategories();
+    }
+    setBusy(false);
+  }
+
+  async function deleteCategory(id: string, name: string) {
+    if (!confirm(`Delete category "${name}"? Products will not be deleted, but they may keep this category text until edited.`)) return;
+    setBusy(true);
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) setMessage({type:'error', text:error.message});
+    else { setMessage({type:'success', text:'Category deleted.'}); await loadCategories(); }
+    setBusy(false);
+  }
+
 
   async function loadOrders() {
     const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
@@ -153,15 +192,18 @@ export default function AdminPage() {
   function editProduct(product: Product) {
     setEditingId(product.id);
     setForm({
-      name: product.name,
+      name: product.name || '',
       description: product.description || '',
-      price: String(product.price),
+      price: String(product.price || ''),
       category: product.category || 'Saree',
-      stock: String(product.stock || 1),
+      stock: String(product.stock ?? 1),
       sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : '',
       images: [],
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage({type:'alert', text:`Editing: ${product.name}. Update details and click Update Product.`});
+    setTimeout(() => {
+      document.getElementById('product-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }
 
   async function deleteProduct(id: string) {
@@ -199,6 +241,25 @@ export default function AdminPage() {
       </div>
       {message && <div className={message.type}>{message.text}</div>}
 
+      <div className="admin-card">
+        <h2>Manage Categories</h2>
+        <p className="desc">Create categories that customers will see at the top of the shop, like Myntra category tabs.</p>
+        <form onSubmit={addCategory}>
+          <div className="form-grid">
+            <div><label>Category Name</label><input className="input" value={categoryForm.name} onChange={e => setCategoryForm({...categoryForm, name:e.target.value})} placeholder="Silk Saree" required /></div>
+            <div><label>Sort Order</label><input className="input" type="number" value={categoryForm.sort_order} onChange={e => setCategoryForm({...categoryForm, sort_order:e.target.value})} /></div>
+            <div style={{gridColumn:'1 / -1'}}><label>Description optional</label><input className="input" value={categoryForm.description} onChange={e => setCategoryForm({...categoryForm, description:e.target.value})} placeholder="Premium Sambalpuri silk collection" /></div>
+          </div>
+          <br />
+          <button className="btn btn-primary" disabled={busy}><Plus size={16}/> Add Category</button>
+        </form>
+        <div className="category-admin-list">
+          {categories.map(cat => (
+            <span className="category-admin-pill" key={cat.id}>{cat.name}<button type="button" onClick={() => deleteCategory(cat.id, cat.name)}>×</button></span>
+          ))}
+          {categories.length === 0 && <p>No categories yet. Add your first category above.</p>}
+        </div>
+      </div>
 
       <div className="admin-card">
         <div style={{display:'flex', justifyContent:'space-between', gap:12, alignItems:'center', flexWrap:'wrap'}}>
@@ -280,13 +341,17 @@ export default function AdminPage() {
         ))}
       </div>
 
-      <div className="admin-card">
+      <div className="admin-card" id="product-form-card">
         <h2>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
+        {editingId && <div className="alert"><strong>Edit mode:</strong> You are editing this product. Change details and click Update Product.</div>}
         <form onSubmit={saveProduct}>
           <div className="form-grid">
             <div><label>Product Name</label><input className="input" value={form.name} onChange={e => setForm({...form, name:e.target.value})} required placeholder="Sambalpuri Silk Saree"/></div>
             <div><label>Price ₹</label><input className="input" type="number" min="0" value={form.price} onChange={e => setForm({...form, price:e.target.value})} required placeholder="2499"/></div>
-            <div><label>Category</label><input className="input" value={form.category} onChange={e => setForm({...form, category:e.target.value})} placeholder="Cotton Saree"/></div>
+            <div><label>Category</label><select className="select" value={form.category} onChange={e => setForm({...form, category:e.target.value})}>
+              <option value="Saree">Saree</option>
+              {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+            </select></div>
             <div><label>Stock</label><input className="input" type="number" min="0" value={form.stock} onChange={e => setForm({...form, stock:e.target.value})}/></div>
             <div style={{gridColumn:'1 / -1'}}><label>Available Sizes</label><input className="input" value={form.sizes} onChange={e => setForm({...form, sizes:e.target.value})} placeholder="Free Size, S, M, L, XL, 6.3m"/><small className="gallery-count">Write sizes separated by comma. Leave blank if no size selection needed.</small></div>
             <div style={{gridColumn:'1 / -1'}}><label>Description</label><textarea className="textarea" rows={4} value={form.description} onChange={e => setForm({...form, description:e.target.value})} placeholder="Write saree fabric, colour, design, size, etc."/></div>
@@ -294,7 +359,7 @@ export default function AdminPage() {
           </div>
           <br/>
           <button className="btn btn-primary" disabled={busy}>{editingId ? <Save size={16}/> : <Plus size={16}/>} {busy ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}</button>
-          {editingId && <button type="button" className="btn btn-light" onClick={() => {setEditingId(null); setForm(emptyForm);}} style={{marginLeft:10}}>Cancel Edit</button>}
+          {editingId && <button type="button" className="btn btn-light" onClick={() => {setEditingId(null); setForm(emptyForm); setMessage({type:'alert', text:'Edit cancelled.'});}} style={{marginLeft:10}}>Cancel Edit</button>}
         </form>
       </div>
 

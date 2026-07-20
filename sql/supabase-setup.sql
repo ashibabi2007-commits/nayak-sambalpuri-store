@@ -74,3 +74,26 @@ create policy "Admin can delete product images"
 on storage.objects for delete
 to authenticated
 using (bucket_id = 'product-images' and (auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
+
+-- Categories table for admin-managed customer category bar.
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  description text,
+  sort_order integer default 0,
+  created_at timestamptz default now()
+);
+
+alter table public.categories enable row level security;
+
+drop policy if exists "Public can view categories" on public.categories;
+create policy "Public can view categories" on public.categories for select using (true);
+
+drop policy if exists "Admin can insert categories" on public.categories;
+create policy "Admin can insert categories" on public.categories for insert to authenticated with check ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
+
+drop policy if exists "Admin can update categories" on public.categories;
+create policy "Admin can update categories" on public.categories for update to authenticated using ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com') with check ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');
+
+drop policy if exists "Admin can delete categories" on public.categories;
+create policy "Admin can delete categories" on public.categories for delete to authenticated using ((auth.jwt() ->> 'email') = 'nayaksambalpuribastralaya26@gmail.com');

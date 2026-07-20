@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
-import { supabase, Product } from '@/lib/supabaseClient';
+import { supabase, Product, Category } from '@/lib/supabaseClient';
 import ProductCard from '@/components/ProductCard';
 
 const demoProducts: Product[] = [
@@ -40,6 +40,8 @@ const demoProducts: Product[] = [
 
 export default function ProductGrid() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
 
@@ -54,13 +56,26 @@ export default function ProductGrid() {
     setLoading(false);
   }
 
-  useEffect(() => { loadProducts(); }, []);
+
+  async function loadCategories() {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true });
+    if (!error && data) setCategories(data as Category[]);
+  }
+
+  useEffect(() => { loadProducts(); loadCategories(); }, []);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
-    if (!q) return products;
-    return products.filter(p => `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase().includes(q));
-  }, [products, query]);
+    return products.filter(p => {
+      const categoryOk = activeCategory === 'All' || p.category === activeCategory;
+      const searchOk = !q || `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase().includes(q);
+      return categoryOk && searchOk;
+    });
+  }, [products, query, activeCategory]);
 
   return (
     <section id="products" className="section">
@@ -78,7 +93,19 @@ export default function ProductGrid() {
           </div>
         </div>
 
+        <div className="category-strip-wrap">
+          <div className="category-strip">
+            <button className={`category-chip ${activeCategory === 'All' ? 'active' : ''}`} onClick={() => setActiveCategory('All')}>All</button>
+            {categories.map((cat) => (
+              <button key={cat.id} className={`category-chip ${activeCategory === cat.name ? 'active' : ''}`} onClick={() => setActiveCategory(cat.name)}>
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {loading ? <p>Loading products...</p> : null}
+        {!loading && filtered.length === 0 ? <div className="admin-card"><p>No products found in this category.</p></div> : null}
         <div className="products">
           {filtered.map((product) => (
             <ProductCard product={product} key={product.id} />

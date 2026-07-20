@@ -1255,3 +1255,49 @@ button, a, input, select, textarea {
 .size-pill:hover { transform:translateY(-1px); border-color:var(--maroon); box-shadow:0 8px 18px rgba(59,13,20,.10); }
 .size-pill.active { background:var(--maroon); color:white; border-color:var(--maroon); }
 .cart-size { display:inline-block; margin-top:4px; padding:3px 8px; border-radius:999px; background:#fff8ec; color:var(--maroon); font-weight:800; font-size:12px; }
+
+/* Customer category bar - Myntra style */
+.category-strip-wrap {
+  position: sticky;
+  top: 76px;
+  z-index: 35;
+  margin: 0 0 22px;
+  padding: 10px 0;
+  background: rgba(255,248,236,.88);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+}
+.category-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 6px;
+  scrollbar-width: thin;
+}
+.category-chip {
+  flex: 0 0 auto;
+  border: 1px solid rgba(120,31,45,.18);
+  background: white;
+  color: var(--deep);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease, color .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.category-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--maroon);
+  box-shadow: 0 10px 24px rgba(59,13,20,.12);
+}
+.category-chip.active {
+  background: linear-gradient(135deg, var(--maroon), #a43145);
+  color: white;
+  border-color: var(--maroon);
+  box-shadow: 0 12px 26px rgba(120,31,45,.22);
+}
+.category-admin-list { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.category-admin-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#fff8ec; border:1px solid #ead8c0; color:var(--deep); font-weight:800; }
+.category-admin-pill button { border:0; background:#b42318; color:white; border-radius:999px; cursor:pointer; padding:3px 8px; }
+@media (max-width: 700px) { .category-strip-wrap { top: 128px; border-radius: 14px; } .category-chip { padding: 9px 14px; font-size: 13px; } }
+@media (max-width: 380px) { .category-strip-wrap { top: 168px; } }
